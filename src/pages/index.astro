@@ -9,8 +9,20 @@
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
+<script src="https://unpkg.com/htmx.org"></script>
 	</head>
 	<body>
-		<h1>Astro</h1>
+<h1>Contact Book</h1>
+
+  <form hx-post="/api/contacts" hx-target="#contacts" hx-swap="innerHTML">
+    <input name="name" placeholder="Name" required />
+    <input name="email" placeholder="Email" />
+    <input name="phone" placeholder="Phone" />
+    <button type="submit">Add</button>
+  </form>
+
+  <div id="contacts" hx-get="/api/contacts" hx-trigger="load" hx-swap="innerHTML">
+    Loading...
+  </div>
 	</body>
 </html>
