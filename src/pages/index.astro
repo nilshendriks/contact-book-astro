@@ -1,28 +1,18 @@
 ---
+export const prerender = false;
 
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { db, Contact } from 'astro:db';
+
+// Server-side data fetching
+const contacts = await db.select().from(Contact).orderBy(Contact.firstName);
+const url = new URL(Astro.request.url);
+const selectedId = parseInt(url.searchParams.get('selected') || '0', 10);
+const selected = contacts.find(c => c._id === selectedId) || contacts[0];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-<script src="https://unpkg.com/htmx.org"></script>
-	</head>
-	<body>
-<h1>Contact Book</h1>
-
-  <form hx-post="/api/contacts" hx-target="#contacts" hx-swap="innerHTML">
-    <input name="name" placeholder="Name" required />
-    <input name="email" placeholder="Email" />
-    <input name="phone" placeholder="Phone" />
-    <button type="submit">Add</button>
-  </form>
-
-  <div id="contacts" hx-get="/api/contacts" hx-trigger="load" hx-swap="innerHTML">
-    Loading...
-  </div>
-	</body>
-</html>
+<BaseLayout title="Contacts" contacts={contacts} selected={selected}>
+  <h1>{selected.firstName} {selected.lastName}</h1>
+  <p>Email: {selected.email}</p>
+  <p>Phone: {selected.phone}</p>
+</BaseLayout>

@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { db, Contact } from 'astro:db';
+export const prerender = false;
+
+// Fetch contacts for sidebar
+const contacts = await db.select().from(Contact).orderBy(Contact.firstName);
+
+// Parse selected ID from query parameter
+const url = new URL(Astro.request.url);
+const selectedParam = url.searchParams.get('selected');
+const selectedId = selectedParam ? Number(selectedParam) : 0;
+// const selected = contacts[0]; // fallback, first contact
+// Find the selected contact, fallback to first if none
+const selected = contacts.find(c => c._id === selectedId) || contacts[0];
+
+// Handle form POST
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const firstName = formData.get('firstName')?.toString() || '';
+  const lastName = formData.get('lastName')?.toString() || '';
+  const email = formData.get('email')?.toString() || '';
+  const phone = formData.get('phone')?.toString() || '';
+
+  if (firstName && lastName) {
+        // await db.insert(Contact).values([{ firstName, lastName, email, phone }]);
+const result = await db.insert(Contact).values([{ firstName, lastName, email, phone }]);
+
+    // Redirect to main page with selected=ID (or index)
+    const newId = result.lastInsertRowid; // depending on DB, may need adjustment
+    return Astro.redirect(`/?selected=${newId}`);
+
+    // return Astro.redirect('/'); // layout will handle showing first contact
+  }
+}
+---
+
+<BaseLayout title="Add Contact" contacts={contacts} selected={selected}>
+  <h2>Add New Contact</h2>
+  <form method="POST">
+    <label>
+      First Name: <input name="firstName" required />
+    </label>
+    <label>
+      Last Name: <input name="lastName" required />
+    </label>
+    <label>
+      Email: <input name="email" />
+    </label>
+    <label>
+      Phone: <input name="phone" />
+    </label>
+    <button type="submit">Save</button>
+  </form>
+</BaseLayout>

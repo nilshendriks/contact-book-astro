@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { db, Contact, eq } from 'astro:db';
+export const prerender = false;
+
+// Fetch all contacts for sidebar
+const contacts = await db.select().from(Contact).orderBy(Contact.firstName);
+
+// Parse selected ID
+const url = new URL(Astro.request.url);
+const selectedParam = url.searchParams.get('selected');
+const selectedId = selectedParam ? Number(selectedParam) : 0;
+
+// Find the selected contact
+const selected = contacts.find(c => c._id === selectedId) || contacts[0];
+
+// Handle form POST
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const firstName = formData.get('firstName')?.toString() || '';
+  const lastName = formData.get('lastName')?.toString() || '';
+  const email = formData.get('email')?.toString() || '';
+  const phone = formData.get('phone')?.toString() || '';
+
+  if (selectedId && firstName && lastName) {
+    await db.update(Contact)
+      .set({ firstName, lastName, email, phone })
+      .where(eq(Contact._id, selectedId));
+
+    return Astro.redirect(`/?selected=${selectedId}`);
+  }
+}
+---
+
+<BaseLayout title="Edit Contact" contacts={contacts} selected={selected}>
+  <h2>Edit Contact</h2>
+  <form method="POST">
+    <label>
+      First Name: <input name="firstName" value={selected.firstName} required />
+    </label>
+    <label>
+      Last Name: <input name="lastName" value={selected.lastName} required />
+    </label>
+    <label>
+      Email: <input name="email" value={selected.email} />
+    </label>
+    <label>
+      Phone: <input name="phone" value={selected.phone} />
+    </label>
+    <button type="submit">Save Changes</button>
+  </form>
+</BaseLayout>

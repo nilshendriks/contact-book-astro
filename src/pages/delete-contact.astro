@@ -1,0 +1,18 @@
+
+---
+import { db, Contact, eq } from 'astro:db';
+export const prerender = false;
+
+// Parse the selected ID from the URL
+const url = new URL(Astro.request.url);
+const selectedParam = url.searchParams.get('selected');
+const selectedId = selectedParam ? Number(selectedParam) : 0;
+
+// Delete the contact if the ID is valid
+if (Number.isInteger(selectedId) && selectedId > 0) {
+  await db.delete(Contact).where(eq(Contact._id, selectedId));
+}
+
+// Redirect back to the index page
+return Astro.redirect('/');
+---
