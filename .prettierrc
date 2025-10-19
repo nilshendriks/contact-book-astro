@@ -1,0 +1,36 @@
+{
+  "printWidth": 80,
+  "plugins": ["prettier-plugin-astro"],
+  "overrides": [
+    {
+      "files": "*.astro",
+      "options": {
+        "parser": "astro",
+        "tabWidth": 2,
+        "embeddedLanguageFormatting": "auto"
+      }
+    },
+    {
+      "files": "*.css",
+      "options": {
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": "*.html",
+      "options": {
+        "embeddedLanguageFormatting": "off"
+      }
+    },
+    {
+      "files": "*.js",
+      "options": {
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": "*.twig",
+      "options": {}
+    }
+  ]
+}

@@ -12,5 +12,9 @@
     "@astrojs/db": "^0.18.0",
     "@astrojs/netlify": "^6.5.13",
     "astro": "^5.14.6"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "prettier-plugin-astro": "^0.14.1"
   }
 }

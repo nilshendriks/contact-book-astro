@@ -1,56 +1,110 @@
 ---
+// import type { APIRoute } from "astro";
 // Props: contacts array and selected contact
 export interface Props {
   title: string;
-  contacts: { _id: number; firstName: string; lastName: string; email: string; phone: string }[];
-  selected: { _id: number; firstName: string; lastName: string; email: string; phone: string };
+  contacts: {
+    _id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }[];
+  selected: {
+    _id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
 }
 const { title, contacts, selected } = Astro.props;
+
+// Determine theme from query param; default to 'wireframe'
+const url = new URL(Astro.request.url);
+const theme = url.searchParams.get("theme") || "wireframe";
 ---
 
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>{title}</title>
-  <style>
-* {
-      box-sizing: border-box;
-    padding: 0;
-      margin: 0;
-    }
+<html lang="en" class={theme === "macos" ? "macos" : ""}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>{title}</title>
+    <style is:global>
+      * {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+      }
 
-html {
-    font-size: 100%;
-    line-height: 1.5;
--webkit-font-smoothing: antialiased;
-}
+      .visually-hidden:not(:focus, :active) {
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
 
+      html {
+        font-size: 100%;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      display: grid;
-      place-items: center;
-      width: 100vw;
-      height: 100vh;
-    background-color: white;
-        color: black;
-    }
-
-    .wrapper {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      grid-template-rows: auto 1fr;
-      width: 80vw;
-      height: 80vh;
-      border: 1px solid #000;
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          "Open Sans",
+          "Helvetica Neue",
+          sans-serif;
+        display: grid;
+        place-items: center;
+        width: 100vw;
+        height: 100vh;
         background-color: white;
-    }
+        color: black;
+      }
 
-    header {
-      grid-column: span 2;
-      background: #fff;
-      padding: 0.5rem;
+      .wrapper {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: auto 1fr;
+        width: 80vw;
+        height: 80vh;
+        border: 1px solid #000;
+        background-color: white;
+      }
+
+      @media screen and (max-width: 767px) {
+        .wrapper {
+          width: 100vw;
+          height: 100vh;
+        }
+
+        .contact-list {
+        }
+
+        header {
+        }
+      }
+
+      header {
+        grid-column: span 2;
+        background: #fff;
+        padding: 0.5rem;
         display: grid;
         grid-template-columns: 1fr auto;
         align-items: center;
@@ -58,84 +112,287 @@ html {
         grid-column: span 2;
         background-color: white;
         border-bottom: 1px solid #000;
-    }
+      }
 
+      .contact-list {
+        list-style: none;
+        margin: 0;
+        padding: 1rem 0 0 0;
+        border-right: 1px solid #000;
+        overflow-y: auto;
+      }
 
+      .contact-list a {
+        display: block;
+        padding: 0.25rem 0.5rem;
+        text-decoration: none;
+        color: black;
+      }
 
-    .contact-list {
-      list-style: none;
-      margin: 0;
-      padding: 1rem 0 0 0;
-      border-right: 1px solid #000;
-      overflow-y: auto;
-    }
+      .contact-list a:hover {
+        background: #ddd;
+      }
 
-    .contact-list a {
-      display: block;
-      padding: 0.25rem 0.5rem;
-      text-decoration: none;
-      color: black;
-    }
+      .contact-list a.selected {
+        background: black;
+        color: white;
+      }
 
-    .contact-list a:hover {
-      background: #ddd;
-    }
+      .contact-details {
+        padding: 1rem;
+        overflow-y: auto;
 
-    .contact-list a.selected {
-      background: black;
-      color: white;
-    }
+        h1 {
+          margin-block-start: 0;
+        }
+      }
 
-    .contact-details {
-      padding: 1rem;
-      overflow-y: auto;
-    }
-
-    .button {
-    display: inline-flex;
+      .actions {
+        display: flex;
         align-items: center;
-      padding: 0.25rem 0.5rem;
-      background-color: white;
-      color: black;
-      border: 1px solid black;
-      cursor: pointer;
-      text-decoration: none;
-    }
+        gap: 0.5rem;
+      }
 
-    .button:hover {
-      background-color: black;
-      color: white;
-    }
-  </style>
-</head>
-<body>
-  <div class="wrapper">
-    <header>
-      <h1>Contacts</h1>
-    <nav>
-        <a class="button" href={`/edit-contact?selected=${selected._id}`}>Edit</a>
-<a class="button" href={`/add-contact?selected=${selected._id}`}>Add</a>
-        <a class="button" href={`/delete-contact?selected=${selected._id}`}>Delete</a>
-    </nav>
+      .button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        background-color: white;
+        color: black;
+        border: 1px solid black;
+        cursor: pointer;
+        text-decoration: none;
+      }
 
-    </header>
+      .button:hover {
+        background-color: black;
+        color: white;
+      }
 
-    <ol class="contact-list">
-      {contacts.map(c => (
-        <li>
+      details.theme-toggle {
+        position: relative;
+        display: inline-block;
+      }
+
+      details.theme-toggle ul {
+        position: absolute;
+        top: 24px;
+        right: 0;
+        z-index: 10;
+        background-color: #fff;
+        border: 1px solid black;
+        list-style: none;
+        font-size: 12px;
+        margin: 0;
+        padding: 4px 8px;
+      }
+
+      details.theme-toggle ul a {
+        color: black;
+        text-decoration: none;
+        display: flex;
+        gap: 4px;
+      }
+
+      details.theme-toggle ul a.selected {
+        color: green;
+
+        &::after {
+          content: " ✓";
+        }
+      }
+
+      details.theme-toggle::details-content {
+        opacity: 0;
+        transition:
+          opacity 600ms,
+          content-visibility 600ms allow-discrete;
+      }
+
+      details.theme-toggle[open]::details-content {
+        opacity: 1;
+      }
+
+      /* MacOS theme styles only */
+      html.macos {
+        body {
+          background: url("/wallpaper.jpeg") no-repeat center center fixed;
+          background-size: cover;
+        }
+
+        .wrapper {
+          border-radius: 24px;
+          overflow: auto;
+          border: none;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        header {
+          border-bottom: none;
+
+          > h1 {
+            visibility: hidden;
+          }
+        }
+
+        .actions {
+          .button {
+            background-color: rgba(249, 249, 249, 1);
+            border: none;
+            border-radius: 50%;
+            aspect-ratio: 1 / 1;
+            font-size: 13px;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+
+            &:hover {
+              background-color: rgba(238, 238, 238, 1);
+              color: black;
+            }
+          }
+
+          .button svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+
+        .contact-list {
+          border-right: none;
+          padding-left: 8px;
+
+          a {
+            &:hover {
+              border-radius: 6px;
+            }
+          }
+        }
+
+        .contact-list a.selected {
+          background-color: rgba(16, 120, 228, 1);
+          border-radius: 6px;
+        }
+
+        .contact-details {
+          background:
+            linear-gradient(to right, rgb(241, 217, 255), rgb(207, 243, 255)),
+            linear-gradient(
+              to bottom,
+              rgb(241, 217, 255),
+              rgba(62, 73, 238, 0.92)
+            );
+          background-blend-mode: color;
+          color: white;
+          border-radius: 24px;
+          margin: 8px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Contacts</h1>
+        <nav class="actions">
           <a
-                        href={`/?selected=${c._id}`}
-            class={selected._id === c._id ? 'selected' : ''}
+            class="button"
+            href={`/edit-contact?selected=${selected._id}&theme=${theme} `}
+            >Edit</a
           >
-            {c.firstName} {c.lastName}
+          <a
+            class="button"
+            href={`/add-contact?selected=${selected._id}&theme=${theme}`}
+          >
+            <span class="visually-hidden">Add</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-plus"
+              ><line x1="12" y1="5" x2="12" y2="19"></line><line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"></line></svg
+            >
           </a>
-        </li>
-      ))}
-    </ol>
+          <a
+            class="button"
+            href={`/delete-contact?selected=${selected._id}&theme=${theme}`}
+          >
+            <span class="visually-hidden">Delete</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-trash-2"
+              ><polyline points="3 6 5 6 21 6"></polyline><path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              ></path><line x1="10" y1="11" x2="10" y2="17"></line><line
+                x1="14"
+                y1="11"
+                x2="14"
+                y2="17"></line></svg
+            >
+          </a>
 
-    <article class="contact-details">
-      <slot /> <!-- Page-specific content goes here -->
-    </article>
-  </div>
-</body>
+          <!-- Theme toggle -->
+          <details class="theme-toggle">
+            <summary>Theme</summary>
+            <ul>
+              <li>
+                <a
+                  href={`/?theme=wireframe`}
+                  class={theme === "wireframe" ? "selected" : ""}>Wireframe</a
+                >
+              </li>
+              <li>
+                <a
+                  href={`/?theme=macos`}
+                  class={theme === "macos" ? "selected" : ""}>MacOS</a
+                >
+              </li>
+            </ul>
+          </details>
+        </nav>
+      </header>
+
+      <ol class="contact-list">
+        {
+          contacts.map((c) => (
+            <li>
+              <a
+                href={`/?selected=${c._id}&theme=${theme}`}
+                class={selected._id === c._id ? "selected" : ""}
+              >
+                {c.firstName} {c.lastName}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      <article class="contact-details">
+        <slot />
+        <!-- Page-specific content goes here -->
+      </article>
+    </div>
+  </body>
 </html>
